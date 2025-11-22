@@ -1,5 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Documentation
+
+Project documentation is available in the `docs/` folder:
+- **Architecture**: See `docs/ARCHITECTURE_DIAGRAM.md` for system architecture and design decisions
+- **Part 1 - Performance Bottlenecks**: See `docs/Part1_BottleNecks` for analysis of potential performance issues
+
 ## Getting Started
 
 First, run the development server:
