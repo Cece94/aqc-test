@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Stage, Layer, Rect, Circle, Text, Line } from 'react-konva'
 import { DEFECT_COLORS } from './DefectsChart'
 import { useRoll } from '@/app/contexts/DefectsContext'
@@ -8,17 +8,35 @@ import { useRoll } from '@/app/contexts/DefectsContext'
 export function DefectsMap() {
     const { rollData, setSelectedDefectTypeId } = useRoll()
     const [hoveredDefect, setHoveredDefect] = useState<number | null>(null)
+    const [canvasWidth, setCanvasWidth] = useState(800)
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    // Update canvas width on resize
+    useEffect(() => {
+        const updateWidth = () => {
+            if (containerRef.current) {
+                const width = containerRef.current.offsetWidth
+                setCanvasWidth(width > 0 ? width : 800)
+            }
+        }
+
+        updateWidth()
+        window.addEventListener('resize', updateWidth)
+        return () => window.removeEventListener('resize', updateWidth)
+    }, [])
 
     if (!rollData) return null
 
     const defects = rollData.individualDefects
     const rollLengthM = rollData.roll.lengthM
 
-    // Canvas dimensions
-    const width = 800
+    // Canvas dimensions - responsive width
+    const width = canvasWidth
     const height = 200
     const rollHeight = 60
     const rollY = (height - rollHeight) / 2
+    const padding = 50
+    const rollWidth = width - (padding * 2)
 
     if (defects.length === 0) {
         return (
@@ -35,7 +53,7 @@ export function DefectsMap() {
     )
 
     return (
-        <div className="bg-muted/20 rounded-lg p-4">
+        <div ref={containerRef} className="bg-muted/20 rounded-lg p-4">
             <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
                     Roll length: {rollLengthM}m
@@ -61,9 +79,9 @@ export function DefectsMap() {
                 <Layer>
                     {/* Roll representation */}
                     <Rect
-                        x={50}
+                        x={padding}
                         y={rollY}
-                        width={700}
+                        width={rollWidth}
                         height={rollHeight}
                         fill="#f5f5f5"
                         stroke="#333"
@@ -73,7 +91,7 @@ export function DefectsMap() {
 
                     {/* Position markers every 100m */}
                     {Array.from({ length: Math.floor(rollLengthM / 100) + 1 }, (_, i) => i * 100).map((pos) => {
-                        const x = 50 + (pos / rollLengthM) * 700
+                        const x = padding + (pos / rollLengthM) * rollWidth
                         return (
                             <Line
                                 key={`marker-${pos}`}
@@ -86,14 +104,14 @@ export function DefectsMap() {
 
                     {/* Position labels */}
                     <Text
-                        x={50}
+                        x={padding}
                         y={rollY + rollHeight + 15}
                         text="0m"
                         fontSize={11}
                         fill="#666"
                     />
                     <Text
-                        x={700}
+                        x={padding + rollWidth - 30}
                         y={rollY + rollHeight + 15}
                         text={`${rollLengthM}m`}
                         fontSize={11}
@@ -102,7 +120,7 @@ export function DefectsMap() {
 
                     {/* Defects as circles */}
                     {defects.map((defect) => {
-                        const x = 50 + (Number(defect.position_m) / rollLengthM) * 700
+                        const x = padding + (Number(defect.position_m) / rollLengthM) * rollWidth
                         const y = rollY + rollHeight / 2
                         const color = defectTypeColorMap.get(defect.defect_type_id) || '#000'
                         const isHovered = hoveredDefect === defect.id
@@ -141,7 +159,7 @@ export function DefectsMap() {
                     {/* Tooltip for hovered defect */}
                     {hoveredDefect && defects.find(d => d.id === hoveredDefect) && (() => {
                         const defect = defects.find(d => d.id === hoveredDefect)!
-                        const x = 50 + (Number(defect.position_m) / rollLengthM) * 700
+                        const x = padding + (Number(defect.position_m) / rollLengthM) * rollWidth
                         const y = rollY - 40
 
                         return (
