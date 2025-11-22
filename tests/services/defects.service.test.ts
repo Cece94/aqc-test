@@ -59,6 +59,7 @@ describe('DefectsService', () => {
                     rollId: 1,
                     rollCode: 'ROLL-A1',
                     material: 'PET Film',
+                    lengthM: 500,
                     totalDefects: 5,
                     defectsByType: [
                         {
@@ -109,6 +110,7 @@ describe('DefectsService', () => {
 
                 expect(result.totalDefects).toBe(0)
                 expect(result.defectsByType).toEqual([])
+                expect(result.lengthM).toBe(420)
             })
 
             it('should correctly calculate total defects', async () => {

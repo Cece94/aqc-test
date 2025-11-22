@@ -1,70 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Stage, Layer, Rect, Circle, Text, Line } from 'react-konva'
 import { DEFECT_COLORS } from './DefectsChart'
-import { useDefects } from '@/app/contexts/DefectsContext'
+import { useRoll } from '@/app/contexts/DefectsContext'
 
-interface Defect {
-    id: number
-    roll_id: number
-    defect_type_id: number
-    position_m: number
-    severity: number
-    notes: string | null
-    defect_types: {
-        id: number
-        code: string
-        description: string
-    }
-}
-
-interface DefectsMapProps {
-    rollId: number
-    rollLengthM: number
-}
-
-export function DefectsMap({ rollId, rollLengthM }: DefectsMapProps) {
-    const [defects, setDefects] = useState<Defect[]>([])
-    const [loading, setLoading] = useState(true)
+export function DefectsMap() {
+    const { rollData, setSelectedDefectTypeId } = useRoll()
     const [hoveredDefect, setHoveredDefect] = useState<number | null>(null)
-    const { setSelectedDefectTypeId } = useDefects()
+
+    if (!rollData) return null
+
+    const defects = rollData.individualDefects
+    const rollLengthM = rollData.roll.lengthM
 
     // Canvas dimensions
     const width = 800
     const height = 200
     const rollHeight = 60
     const rollY = (height - rollHeight) / 2
-
-    useEffect(() => {
-        async function fetchDefects() {
-            try {
-                setLoading(true)
-                const response = await fetch(`/api/rolls/${rollId}/defects`)
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch defects')
-                }
-
-                const data = await response.json()
-                setDefects(data)
-            } catch (err) {
-                console.error('Error fetching defects:', err)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchDefects()
-    }, [rollId])
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-[200px] bg-muted/20 rounded-lg">
-                <p className="text-muted-foreground">Loading defects map...</p>
-            </div>
-        )
-    }
 
     if (defects.length === 0) {
         return (

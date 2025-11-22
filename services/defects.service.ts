@@ -1,4 +1,5 @@
-import { DefectStats, AggregatedDefectsResponse } from "@/app/models/defect-stats.types"
+import { AggregatedDefectsResponse } from "@/app/models/aggregated-defects-response"
+import { DefectStats } from "@/app/models/defect-stats"
 import { DefectsRepository } from "@/repositories/defects.repository"
 
 /**

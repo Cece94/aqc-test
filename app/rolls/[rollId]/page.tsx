@@ -1,4 +1,5 @@
 import { DefectsStats } from '@/app/components/DefectsStats'
+import { RollProvider } from '@/app/contexts/DefectsContext'
 import Link from 'next/link'
 
 interface PageProps {
@@ -39,7 +40,9 @@ export default async function RollPage({ params }: PageProps) {
                         <p className="text-destructive font-medium">Invalid roll ID</p>
                     </div>
                 ) : (
-                    <DefectsStats rollId={rollIdNum} />
+                    <RollProvider rollId={rollIdNum}>
+                        <DefectsStats />
+                    </RollProvider>
                 )}
             </main>
         </div>

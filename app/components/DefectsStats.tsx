@@ -1,51 +1,18 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { AggregatedDefectsResponse } from '@/app/models/defect-stats.types'
+import { useEffect, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DefectsChart, DEFECT_COLORS } from './DefectsChart'
 import { DefectsMap } from './DefectsMap'
-import { DefectsProvider, useDefects } from '@/app/contexts/DefectsContext'
+import { useRoll } from '@/app/contexts/DefectsContext'
 
-interface DefectsStatsProps {
-    rollId: number
-}
-
-function DefectsStatsContent({ rollId }: DefectsStatsProps) {
-    const [data, setData] = useState<AggregatedDefectsResponse | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-    const { selectedDefectTypeId } = useDefects()
+export function DefectsStats() {
+    const { rollData, loading, error, selectedDefectTypeId } = useRoll()
 
     // Refs for each defect card to enable scrolling
     const defectRefs = useRef<Map<number, HTMLDivElement>>(new Map())
-
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                setLoading(true)
-                setError(null)
-
-                const response = await fetch(`/api/rolls/${rollId}/defects-stats`)
-
-                if (!response.ok) {
-                    const errorData = await response.json()
-                    throw new Error(errorData.error || 'Failed to fetch data')
-                }
-
-                const result = await response.json()
-                setData(result)
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An error occurred')
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchData()
-    }, [rollId])
 
     // Scroll to selected defect card
     useEffect(() => {
@@ -91,7 +58,7 @@ function DefectsStatsContent({ rollId }: DefectsStatsProps) {
         )
     }
 
-    if (!data) {
+    if (!rollData) {
         return null
     }
 
@@ -100,11 +67,11 @@ function DefectsStatsContent({ rollId }: DefectsStatsProps) {
             {/* Roll Info */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Roll: {data.rollCode}</CardTitle>
+                    <CardTitle>Roll: {rollData.roll.rollCode}</CardTitle>
                     <CardDescription>
                         <div className="flex gap-6 mt-2">
-                            <span>Material: <span className="text-foreground font-medium">{data.material}</span></span>
-                            <span>Total Defects: <Badge variant="secondary">{data.totalDefects}</Badge></span>
+                            <span>Material: <span className="text-foreground font-medium">{rollData.roll.material}</span></span>
+                            <span>Total Defects: <Badge variant="secondary">{rollData.aggregatedStats.totalDefects}</Badge></span>
                         </div>
                     </CardDescription>
                 </CardHeader>
@@ -117,10 +84,10 @@ function DefectsStatsContent({ rollId }: DefectsStatsProps) {
                     <CardDescription>Visual distribution of defects by type</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {data.defectsByType.length === 0 ? (
+                    {rollData.aggregatedStats.defectsByType.length === 0 ? (
                         <p className="text-muted-foreground text-center py-8">No defects to display</p>
                     ) : (
-                        <DefectsChart data={data.defectsByType} />
+                        <DefectsChart />
                     )}
                 </CardContent>
             </Card>
@@ -132,7 +99,7 @@ function DefectsStatsContent({ rollId }: DefectsStatsProps) {
                     <CardDescription>Location of defects along the roll length</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <DefectsMap rollId={rollId} rollLengthM={data.lengthM} />
+                    <DefectsMap />
                 </CardContent>
             </Card>
 
@@ -143,11 +110,11 @@ function DefectsStatsContent({ rollId }: DefectsStatsProps) {
                     <CardDescription>Detailed statistics for each defect type</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {data.defectsByType.length === 0 ? (
+                    {rollData.aggregatedStats.defectsByType.length === 0 ? (
                         <p className="text-muted-foreground">No defects found for this roll.</p>
                     ) : (
                         <div className="space-y-3">
-                            {data.defectsByType.map((defect, index) => (
+                            {rollData.aggregatedStats.defectsByType.map((defect, index) => (
                                 <Card
                                     key={defect.defectTypeId}
                                     ref={(el) => {
@@ -203,15 +170,6 @@ function DefectsStatsContent({ rollId }: DefectsStatsProps) {
                 </CardContent>
             </Card>
         </div>
-    )
-}
-
-// Wrapper component with Context Provider
-export function DefectsStats({ rollId }: DefectsStatsProps) {
-    return (
-        <DefectsProvider>
-            <DefectsStatsContent rollId={rollId} />
-        </DefectsProvider>
     )
 }
 
