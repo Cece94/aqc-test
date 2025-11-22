@@ -13,6 +13,7 @@ interface Roll {
     width_mm: number
     length_m: number
     produced_at: string
+    defect_count: number
 }
 
 export function RollsList() {
@@ -106,6 +107,11 @@ export function RollsList() {
                         <div className="flex gap-4 text-sm text-muted-foreground">
                             <span>Width: {roll.width_mm}mm</span>
                             <span>Length: {roll.length_m}m</span>
+                        </div>
+                        <div className="mt-3 pt-3 border-t">
+                            <Badge variant="outline">
+                                {roll.defect_count} {roll.defect_count === 1 ? 'defect' : 'defects'}
+                            </Badge>
                         </div>
                     </CardContent>
                 </Card>

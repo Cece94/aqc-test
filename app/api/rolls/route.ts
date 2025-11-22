@@ -7,9 +7,20 @@ export async function GET() {
             orderBy: {
                 produced_at: 'desc',
             },
+            include: {
+                _count: {
+                    select: { defects: true }
+                }
+            }
         })
 
-        return NextResponse.json(rolls, { status: 200 })
+        // Format response to include defect count
+        const rollsWithDefectCount = rolls.map(roll => ({
+            ...roll,
+            defect_count: roll._count.defects
+        }))
+
+        return NextResponse.json(rollsWithDefectCount, { status: 200 })
     } catch (error) {
         console.error('Error fetching rolls:', error)
 
