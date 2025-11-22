@@ -73,6 +73,7 @@ export class DefectsService {
             rollId: roll.id,
             rollCode: roll.roll_code,
             material: roll.material,
+            lengthM: roll.length_m,
             totalDefects: defectsByType.reduce((sum, d) => sum + d.count, 0),
             defectsByType,
         }

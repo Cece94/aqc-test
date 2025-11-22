@@ -2,6 +2,7 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { DefectStats } from '@/app/models/defect-stats.types'
+import { useDefects } from '@/app/contexts/DefectsContext'
 
 interface DefectsChartProps {
     data: DefectStats[]
@@ -11,12 +12,21 @@ interface DefectsChartProps {
 export const DEFECT_COLORS = ['#0ea5e9', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981']
 
 export function DefectsChart({ data }: DefectsChartProps) {
+    const { setSelectedDefectTypeId } = useDefects()
+
     // Transform data for Recharts
     const chartData = data.map((defect) => ({
         code: defect.defectTypeCode,
         count: defect.count,
         description: defect.defectTypeDescription,
+        defectTypeId: defect.defectTypeId,
     }))
+
+    const handleBarClick = (data: any) => {
+        if (data && data.defectTypeId) {
+            setSelectedDefectTypeId(data.defectTypeId)
+        }
+    }
 
     return (
         <ResponsiveContainer width="100%" height={300}>
@@ -46,7 +56,12 @@ export function DefectsChart({ data }: DefectsChartProps) {
                         return null
                     }}
                 />
-                <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                <Bar
+                    dataKey="count"
+                    radius={[8, 8, 0, 0]}
+                    onClick={handleBarClick}
+                    cursor="pointer"
+                >
                     {chartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={DEFECT_COLORS[index % DEFECT_COLORS.length]} />
                     ))}

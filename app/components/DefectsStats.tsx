@@ -1,20 +1,26 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { AggregatedDefectsResponse } from '@/app/models/defect-stats.types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DefectsChart, DEFECT_COLORS } from './DefectsChart'
+import { DefectsMap } from './DefectsMap'
+import { DefectsProvider, useDefects } from '@/app/contexts/DefectsContext'
 
 interface DefectsStatsProps {
     rollId: number
 }
 
-export function DefectsStats({ rollId }: DefectsStatsProps) {
+function DefectsStatsContent({ rollId }: DefectsStatsProps) {
     const [data, setData] = useState<AggregatedDefectsResponse | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const { selectedDefectTypeId } = useDefects()
+
+    // Refs for each defect card to enable scrolling
+    const defectRefs = useRef<Map<number, HTMLDivElement>>(new Map())
 
     useEffect(() => {
         async function fetchData() {
@@ -40,6 +46,16 @@ export function DefectsStats({ rollId }: DefectsStatsProps) {
 
         fetchData()
     }, [rollId])
+
+    // Scroll to selected defect card
+    useEffect(() => {
+        if (selectedDefectTypeId !== null) {
+            const element = defectRefs.current.get(selectedDefectTypeId)
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }
+        }
+    }, [selectedDefectTypeId])
 
     if (loading) {
         return (
@@ -109,6 +125,17 @@ export function DefectsStats({ rollId }: DefectsStatsProps) {
                 </CardContent>
             </Card>
 
+            {/* Defects Position Map */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Defects Position Map</CardTitle>
+                    <CardDescription>Location of defects along the roll length</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <DefectsMap rollId={rollId} rollLengthM={data.lengthM} />
+                </CardContent>
+            </Card>
+
             {/* Defects List */}
             <Card>
                 <CardHeader>
@@ -123,7 +150,13 @@ export function DefectsStats({ rollId }: DefectsStatsProps) {
                             {data.defectsByType.map((defect, index) => (
                                 <Card
                                     key={defect.defectTypeId}
-                                    className="hover:bg-accent/50 transition-colors"
+                                    ref={(el) => {
+                                        if (el) {
+                                            defectRefs.current.set(defect.defectTypeId, el)
+                                        }
+                                    }}
+                                    className={`hover:bg-accent/50 transition-all ${selectedDefectTypeId === defect.defectTypeId ? 'ring-2 ring-primary' : ''
+                                        }`}
                                     style={{ borderLeft: `4px solid ${DEFECT_COLORS[index % DEFECT_COLORS.length]}` }}
                                 >
                                     <CardContent className="pt-6">
@@ -170,6 +203,15 @@ export function DefectsStats({ rollId }: DefectsStatsProps) {
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+// Wrapper component with Context Provider
+export function DefectsStats({ rollId }: DefectsStatsProps) {
+    return (
+        <DefectsProvider>
+            <DefectsStatsContent rollId={rollId} />
+        </DefectsProvider>
     )
 }
 
