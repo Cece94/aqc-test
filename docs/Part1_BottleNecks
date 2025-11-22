@@ -1,0 +1,17 @@
+Here are the main potential performance bottlenecks for displaying large defect maps
+
+Potential Bottlenecks:
+
+Data Volume
+Loading thousands of defects in a single request can be slow
+Displaying thousands of visual elements (circles, markers) simultaneously
+Each element with its own event listeners (hover, click) -> Collision detection for tooltips/hovers
+
+Interactivity
+Position calculations for each defect on every frame
+
+Simple Solutions:
+
+Virtualization: only display defects visible in the viewport
+Pagination/Lazy loading: load data in segments
+Clustering: group nearby defects into a single marker
