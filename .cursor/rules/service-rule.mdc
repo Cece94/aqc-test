@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+Rule: Place all business logic and data access in /services (Prisma, external APIs, domain rules). Components must stay presentational (UI, props, minimal state). Do not import services in client components—only use them in Server Components, Server Actions, or API routes. Keep services small, reusable, and aligned with DRY/SRP/YAGNI.
+---

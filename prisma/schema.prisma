@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model groups {
+  id     Int      @id(map: "group_pkey") @default(autoincrement())
+  name   String?  @db.VarChar
+  person person[]
+}
+
+model person {
+  id       Int     @id @default(autoincrement())
+  name     String? @db.VarChar
+  age      Int?
+  group_id Int?
+  groups   groups? @relation(fields: [group_id], references: [id], onUpdate: NoAction, map: "person_group_fk")
+}
